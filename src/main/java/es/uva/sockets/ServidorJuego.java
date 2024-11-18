@@ -1,10 +1,14 @@
 package es.uva.sockets;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class ServidorJuego {
     // El juego consiste en encontrar un tesoro
@@ -29,19 +33,21 @@ public class ServidorJuego {
     public final Estado estado;
     public final ServerSocket serverSocket;
     private final List<ManagerCliente> clientes;
+    private final List<String> mensajes;
 
     public ServidorJuego(int size, int puerto) throws IOException {
         estado = new Estado(size);
         clientes = new ArrayList<>();
+        mensajes = new ArrayList<>();
         // Crear un serverSocket que acepte
         // conexiones de VARIOS clientes
+
         serverSocket = new ServerSocket(puerto);
-    }
+        }
 
     public void iniciar() throws IOException {
         while (!estado.estaTerminado()) {
             ManagerCliente nuevo = aceptarConexion();
-            clientes.add(nuevo);
             nuevo.start();
         }
 
@@ -52,10 +58,29 @@ public class ServidorJuego {
         // Al añadir un nuevo jugador se le deben enviar
         // la posicion de los jugadores existentes, aunque no
         // sabe donde han estado buscando.
+
+        Socket socket = serverSocket.accept();
+        int id = estado.jugadores.size();
+        ManagerCliente nuevo = new ManagerCliente(socket, this, id);
+        for (Jugador j : estado.jugadores) {
+            nuevo.enviarMensaje("PLAYER JOIN " + j.id + " " + j.coordenadas.getX() + " " + j.coordenadas.getY());
+        }
+        clientes.add(nuevo);
+
+        int x = new Random().nextInt(estado.getSize());
+        int y = new Random().nextInt(estado.getSize());
+        estado.nuevoJugador(new Jugador(id, new Coordenadas(x, y)));
+        broadcast("PLAYER JOIN " + id + " " + x + " " + y);
+
+        return nuevo;
     }
 
     public synchronized void broadcast(String message) {
         // TODO: Enviar un mensaje a todos los clientes
+        mensajes.add(message);
+        for (ManagerCliente c : clientes) {
+            c.enviarMensaje(message);
+        }
     }
 
 }

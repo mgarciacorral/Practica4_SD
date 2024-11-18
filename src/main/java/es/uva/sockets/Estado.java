@@ -1,6 +1,7 @@
 package es.uva.sockets;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Estado {
     public final ArrayList<Jugador> jugadores;
@@ -15,7 +16,14 @@ public class Estado {
         this.jugadores = new ArrayList<>();
         this.buscadas = new ArrayList<>();
         // TODO: Coordenadas aleatorias para el tesoro
-        this.tesoro = new Coordenadas(0, 0);
+        //DONE
+        int x = new Random().nextInt(size);
+        int y = new Random().nextInt(size);
+        this.tesoro = new Coordenadas(x, y);
+    }
+
+    public int getSize() {
+        return size;
     }
 
     // Los métodos que modifican el estado son synchronized,
@@ -36,13 +44,33 @@ public class Estado {
         jugadores.add(jugador);
     }
 
-    public synchronized void buscar(int id) {
+    public synchronized boolean buscar(int id) {
         // TODO busca el tesoro el jugador con este id
         // Si se encuentra finaliza el juego
+
+        buscadas.add(jugadores.get(id).coordenadas);
+        for (Jugador j : jugadores) {
+            if(j.id == id){
+                if (j.coordenadas.equals(tesoro)){
+                    terminar();
+                    return true;
+                }
+
+            }
+
+        }
+        return false;
+
+
     }
 
     public synchronized void mover(int id, Direccion dir) {
         // TODO mueve a el jugador id en la direccion dir
+        for (Jugador j : jugadores) {
+            if(j.id == id){
+                j.coordenadas.mover(dir);
+            }
+        }
     }
 
     public void mostrar() {

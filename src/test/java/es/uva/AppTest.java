@@ -92,6 +92,7 @@ public class AppTest {
         clienteJuego2.procesarMensajeServidor(); // Añade al jugador nuevo
         clienteJuego1.procesarMensajeServidor(); // Añade al jugador nuevo
 
+        System.out.print("EMPIEZA A MOVERSE\n");
         System.setIn(new ByteArrayInputStream(key.getBytes()));
         clienteJuego1.procesarInput();
         managerCliente.procesarMensajeCliente();
